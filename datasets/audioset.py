@@ -19,7 +19,7 @@ from datasets.helpers.audiodatasets import PreprocessDataset, get_roll_func
 dataset_dir = None
 assert dataset_dir is not None, "Specify AudioSet location in variable 'dataset_dir'. " \
                                 "Check out the Readme file for further instructions. " \
-                                "https://github.com/fschmid56/EfficientAT/blob/main/README.md"
+                                "https://github.com/redbeardnz/EfficientAT/blob/main/README.md"
 
 dataset_config = {
     'balanced_train_hdf5': os.path.join(dataset_dir, "balanced_train_segments_mp3.hdf"),

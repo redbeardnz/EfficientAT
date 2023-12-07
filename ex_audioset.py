@@ -22,9 +22,9 @@ from helpers.init import worker_init_fn
 from helpers.utils import NAME_TO_WIDTH, exp_warmup_linear_down, mixup
 
 preds_url = \
-    "https://github.com/fschmid56/EfficientAT/releases/download/v0.0.1/passt_enemble_logits_mAP_495.npy"
+    "https://github.com/redbeardnz/EfficientAT/releases/download/v0.0.1/passt_enemble_logits_mAP_495.npy"
 
-fname_to_index_url = "https://github.com/fschmid56/EfficientAT/releases/download/v0.0.1/fname_to_index.pkl"
+fname_to_index_url = "https://github.com/redbeardnz/EfficientAT/releases/download/v0.0.1/fname_to_index.pkl"
 
 
 def train(args):

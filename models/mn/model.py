@@ -16,7 +16,7 @@ from helpers.utils import NAME_TO_WIDTH
 # https://github.com/pytorch/vision/blob/main/torchvision/models/mobilenetv3.py
 
 # points to github releases
-model_url = "https://github.com/fschmid56/EfficientAT/releases/download/v0.0.1/"
+model_url = "https://github.com/redbeardnz/EfficientAT/releases/download/v0.0.1/"
 # folder to store downloaded models to
 model_dir = "resources"
 

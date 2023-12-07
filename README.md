@@ -158,7 +158,7 @@ you might notice a slight performance degradation.
 ## Quality of extracted Audio Embeddings 
 
 As shown in the paper [Low-Complexity Audio Embeddings Extractors](https://arxiv.org/pdf/2303.01879.pdf) (published at [EUSIPCO 2023](http://eusipco2023.org/)),
-MNs are excellent at extracting high-quality audio embeddings. Checkout the repository [EfficientAT_HEAR](https://github.com/fschmid56/EfficientAT_HEAR)
+MNs are excellent at extracting high-quality audio embeddings. Checkout the repository [EfficientAT_HEAR](https://github.com/redbeardnz/EfficientAT_HEAR)
 for further details and the results on the [HEAR Benchmark](https://hearbenchmark.com/).
 
 ## Train and Evaluate on AudioSet

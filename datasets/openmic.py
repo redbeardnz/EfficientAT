@@ -19,7 +19,7 @@ dataset_dir = None
 
 assert dataset_dir is not None, "Specify OpenMic dataset location in variable 'dataset_dir'. " \
                                 "Check out the Readme file for further instructions. " \
-                                "https://github.com/fschmid56/EfficientAT/blob/main/README.md"
+                                "https://github.com/redbeardnz/EfficientAT/blob/main/README.md"
 
 dataset_config = {
     'openmic_train_hdf5': os.path.join(dataset_dir, "openmic_train.csv_mp3.hdf"),

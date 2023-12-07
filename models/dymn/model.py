@@ -10,7 +10,7 @@ from models.dymn.dy_block import DynamicInvertedResidualConfig, DY_Block, Dynami
 from models.mn.block_types import InvertedResidualConfig, InvertedResidual
 
 # points to github releases
-model_url = "https://github.com/fschmid56/EfficientAT/releases/download/v0.0.1/"
+model_url = "https://github.com/redbeardnz/EfficientAT/releases/download/v0.0.1/"
 # folder to store downloaded models to
 model_dir = "resources"
 

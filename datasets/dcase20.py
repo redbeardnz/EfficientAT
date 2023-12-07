@@ -11,7 +11,7 @@ from datasets.helpers.audiodatasets import PreprocessDataset, get_roll_func, get
 dataset_dir = None
 assert dataset_dir is not None, "Specify 'TAU Urban Acoustic Scenes 2020 Mobile dataset' location in variable " \
                                 "'dataset_dir'. Check out the Readme file for further instructions. " \
-                                "https://github.com/fschmid56/EfficientAT/blob/main/README.md"
+                                "https://github.com/redbeardnz/EfficientAT/blob/main/README.md"
 
 dataset_config = {
     "dataset_name": "tau_urban_acoustic_scene20",

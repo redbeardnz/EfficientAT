@@ -19,7 +19,7 @@ dataset_dir = None
 
 assert dataset_dir is not None, "Specify ESC50 dataset location in variable 'dataset_dir'. " \
                                 "Check out the Readme file for further instructions. " \
-                                "https://github.com/fschmid56/EfficientAT/blob/main/README.md"
+                                "https://github.com/redbeardnz/EfficientAT/blob/main/README.md"
 
 dataset_config = {
     'meta_csv': os.path.join(dataset_dir, "meta/esc50.csv"),
