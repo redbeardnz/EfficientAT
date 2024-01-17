@@ -1,4 +1,3 @@
-import argparse
 import torch
 import librosa
 import numpy as np
@@ -37,7 +36,9 @@ class EfficientAT:
 
     def predict(self,
                 wav: Path,
+                resolution: int = 1,
                 pad_method: str = "repeat",
+                top_rank: int = 10,
                 **kwargs,
     ):
         self._model.to(self._device)
@@ -52,9 +53,10 @@ class EfficientAT:
 
         sample_rate = settings["sr"]
         model_wav_length = 10 # in seconds
-        seg_length = 5 # in seconds
+        seg_length = resolution # in seconds
         seg_size = sample_rate * seg_length # frames number of each seg
         waveform, _ = librosa.core.load(str(wav), sr=sample_rate, mono=True)
+        results = list()
 
         for seg_id in range(int(waveform.size / seg_size)):
             seg = waveform[seg_id*seg_size : (seg_id+1)*seg_size]
@@ -80,14 +82,18 @@ class EfficientAT:
 
             sorted_indexes = np.argsort(preds)[::-1]
 
-            # Print audio tagging top probabilities
-            print(f"************* Acoustic Event Detected: at seconds {seg_id*seg_length} *****************")
-            for k in range(10):
-                print('{}: {:.3f}'.format(labels[sorted_indexes[k]], preds[sorted_indexes[k]]))
-            print("********************************************************")
+            result = dict()
+            for k in range(top_rank if top_rank > 0 else 10):
+                result[labels[sorted_indexes[k]]] = preds[sorted_indexes[k]]
+            results.append(result)
+        return results
 
 
-    def predictGW(self, wav: Path, sigma: float = 0.5, **kwargs):
+    def predictGW(self, wav: Path,
+                  resolution: int = 1,
+                  sigma: float = 0.5,
+                  top_rank: int = 10,
+                  **kwargs):
         self._model.to(self._device)
         self._model.eval()
 
@@ -99,7 +105,7 @@ class EfficientAT:
         mel.eval()
 
         sample_rate = settings["sr"]
-        step_dur = 1 # in seconds
+        step_dur = resolution # in seconds
         step_size = step_dur * sample_rate
         gaussian_window_dur = 10 # in seconds
         gaussian_window_size = gaussian_window_dur * sample_rate
@@ -112,11 +118,14 @@ class EfficientAT:
         tail_pad_size = (step_size - waveform.size % step_size) % step_size
         tail_pad = np.zeros(tail_pad_size, dtype=np.float32)
         waveform = np.concatenate((symme_pad, waveform, tail_pad, symme_pad))
-        total_step_count = int((waveform.size - (gaussian_window_dur - step_dur) * sample_rate) / sample_rate)
+        total_step_count = int((waveform.size - (gaussian_window_dur - step_dur) * sample_rate) / (sample_rate * step_dur))
         step_results = [dict() for i in range(int(int(waveform.size / sample_rate) / step_dur))]
         filter_out_labels = ["Silence", "Speech"]
+        top_rank = top_rank if top_rank > 0 else 10
 
+        #import pdb; pdb.set_trace()
         for step in range(total_step_count):
+            #print(f"step: {step}")
             wave = waveform[step * step_size : step * step_size + gaussian_window_size]
             wave = torch.from_numpy(wave[None, :]).to(self._device)
 
@@ -131,9 +140,7 @@ class EfficientAT:
 
             sorted_indexes = np.argsort(preds)[::-1]
 
-            # Print audio tagging top probabilities
-            #print(f"************* Acoustic Event Detected: at step {step} *****************")
-            for k in range(10):
+            for k in range(top_rank):
                 label = labels[sorted_indexes[k]]
                 predict = preds[sorted_indexes[k]]
                 #print('{}: {:.3f}'.format(label, predict))
@@ -141,14 +148,19 @@ class EfficientAT:
                     continue
                 for i, step_result in enumerate(step_results[step : step + gaussian_window_step_size]):
                     step_result[label] = step_result.get(label, 0.0) + predict * gwindow[i]
-            #print("********************************************************")
 
+        results = list()
         step_results = step_results[symme_pad_step_size : len(step_results) - symme_pad_step_size]
         for i, step_result in enumerate(step_results):
-            print(f"************* Acoustic Event Detected: at step {i} *****************")
+            result = dict()
+            count = 1
             for label, predict in sorted(step_result.items(), key=lambda x:x[1], reverse=True):
-                print('{}: {:.3f}'.format(label, predict))
-            print("********************************************************")
+                if count > top_rank:
+                    break
+                result[label] = predict
+                count += 1
+            results.append(result)
+        return results
 
 
     def _gaussian_window(self, points_num: int, scale: float):
@@ -168,8 +180,15 @@ class EfficientAT:
 if __name__ == '__main__':
     """
     cd //EfficientAT
-    python EfficientAT.py --cuda --model_name=dymn20_as --audio_path=/home/centos/redbeard/test/media-backend/origin_videos/twitter_test_1.wav --head_type=fully_convolutional
+    python EfficientAT.py --cuda --model_name=dymn20_as --audio_path=/home/centos/redbeard/test/media-backend/origin_videos/twitter_test_1.wav --head_type=fully_convolutional --resolution 1 --method gaussian --sigma 1.0
+
+    python EfficientAT.py --cuda --model_name=dymn20_as --audio_path=/home/centos/redbeard/test/media-backend/origin_videos/twitter_test_1.wav --head_type=fully_convolutional --resolution 1 --method repeat
+
+    python EfficientAT.py --cuda --model_name=dymn20_as --audio_path=/home/centos/redbeard/test/media-backend/origin_videos/twitter_test_1.wav --head_type=fully_convolutional --resolution 1 --method pad
     """
+
+    import argparse
+
 
     parser = argparse.ArgumentParser(description='Example of parser. ')
     # model name decides, which pre-trained model is loaded
@@ -185,15 +204,42 @@ if __name__ == '__main__':
     parser.add_argument('--hop_size', type=int, default=320)
     parser.add_argument('--n_mels', type=int, default=128)
 
+    # method
+    parser.add_argument('--method', type=str, default='gaussian',
+                        choices=['gaussian', 'repeat', 'pad'])
+    parser.add_argument('--resolution', type=int, default=1)
+    parser.add_argument('--sigma', type=float, default=1.0)
+    parser.add_argument('--top_rank', type=int, default=10)
+
     args = parser.parse_args()
 
     at = EfficientAT(model_name=args.model_name,
                      strides=args.strides,
                      head_type=args.head_type,
                      cuda=args.cuda)
-    at.predictGW(args.audio_path,
-                 sigma=1.0,
-                 n_mels=args.n_mels,
-                 sr=args.sample_rate,
-                 win_length=args.window_size,
-                 hopsize=args.hop_size)
+    results = None
+    if args.method == 'gaussian':
+        results = at.predictGW(args.audio_path,
+                               resolution=args.resolution,
+                               sigma=args.sigma,
+                               top_rank=args.top_rank,
+                               n_mels=args.n_mels,
+                               sr=args.sample_rate,
+                               win_length=args.window_size,
+                               hopsize=args.hop_size)
+    else:
+        results = at.predict(args.audio_path,
+                             resolution=args.resolution,
+                             pad_method=args.method,
+                             top_rank=args.top_rank,
+                             n_mels=args.n_mels,
+                             sr=args.sample_rate,
+                             win_length=args.window_size,
+                             hopsize=args.hop_size)
+
+    # Print audio tagging top probabilities
+    for i, result in enumerate(list() if results is None else results):
+        print(f"****** Acoustic Event Detected: at seconds {i*args.resolution} ******")
+        for label, predict in result.items():
+            print('{}: {:.3f}'.format(label, predict))
+        print("********************************************************")
