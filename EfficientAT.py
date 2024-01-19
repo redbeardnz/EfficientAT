@@ -6,7 +6,10 @@ from pathlib import Path
 from scipy.stats import norm
 from torch import autocast
 from contextlib import nullcontext, suppress
+import sys
+from os.path import dirname
 
+sys.path.append(dirname(__file__))
 from models.mn.model import get_model as get_mobilenet
 from models.dymn.model import get_model as get_dymn
 from models.ensemble import get_ensemble_model
@@ -195,7 +198,7 @@ if __name__ == '__main__':
     parser.add_argument('--model_name', type=str, default='mn10_as')
     parser.add_argument('--strides', nargs=4, default=[2, 2, 2, 2], type=int)
     parser.add_argument('--head_type', type=str, default="mlp")
-    parser.add_argument('--cuda', action='store_true', default=True)
+    parser.add_argument('--cuda', action='store_true', default=False)
     parser.add_argument('--audio_path', type=Path, required=True)
 
     # preprocessing
