@@ -2,7 +2,7 @@ from functools import partial
 from typing import Any, Callable, List, Optional, Sequence, Tuple
 from torch import nn, Tensor
 import torch.nn.functional as F
-from torchvision.ops.misc import ConvNormActivation
+from torchvision.ops.misc import Conv2dNormActivation
 from torch.hub import load_state_dict_from_url
 import urllib.parse
 
@@ -76,7 +76,7 @@ class DyMN(nn.Module):
 
         # building first layer
         firstconv_output_channels = inverted_residual_setting[0].input_channels
-        self.in_c = ConvNormActivation(
+        self.in_c = Conv2dNormActivation(
                 in_channels,
                 firstconv_output_channels,
                 kernel_size=in_conv_kernel,
@@ -106,7 +106,7 @@ class DyMN(nn.Module):
         # building last several layers
         lastconv_input_channels = inverted_residual_setting[-1].out_channels
         lastconv_output_channels = 6 * lastconv_input_channels
-        self.out_c = ConvNormActivation(
+        self.out_c = Conv2dNormActivation(
             lastconv_input_channels,
             lastconv_output_channels,
             kernel_size=1,
@@ -284,7 +284,8 @@ def get_model(num_classes: int = 527,
               pretrain_final_temp: float = 1.0,
               # Coordinate Attention
               no_ca: bool = False,
-              use_dy_blocks="all"):
+              use_dy_blocks="all",
+              suppress_logs: bool = False):
     """
     Arguments to modify the instantiation of a DyMN
 
@@ -334,5 +335,6 @@ def get_model(num_classes: int = 527,
              temp_schedule=temp_schedule,
              use_dy_blocks=use_dy_blocks
              )
-    print(m)
+    if not suppress_logs:
+        print(m)
     return m

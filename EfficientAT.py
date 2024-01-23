@@ -24,11 +24,13 @@ class EfficientAT:
                  strides: list = [2, 2, 2, 2],
                  head_type: str = "mlp",
                  cuda: bool = True,
+                 debug: bool = False,
     ):
         if model_name.startswith("dymn"):
             self._model = get_dymn(width_mult=NAME_TO_WIDTH(model_name),
                                    pretrained_name=model_name,
-                                   strides=strides)
+                                   strides=strides,
+                                   suppress_logs=not debug)
         else:
             self._model = get_mobilenet(width_mult=NAME_TO_WIDTH(model_name),
                                        pretrained_name=model_name,
@@ -48,8 +50,11 @@ class EfficientAT:
         self._model.eval()
 
         # model to preprocess waveform into mel spectrograms
-        settings = {"n_mels": 128, "sr": 32000, "win_length": 800, "hopsize": 320}
+        settings = {"n_mels": 128, "sr": 32000, "win_length": 800, "hopsize": 320,
+                    "fmax": None, "fmax_aug_range": 2000}
         settings.update(kwargs)
+        if settings["fmax"] is None:
+            settings["fmax"] = settings["sr"] // 2 - settings["fmax_aug_range"] // 2
         mel = AugmentMelSTFT(**settings)
         mel.to(self._device)
         mel.eval()
@@ -101,8 +106,11 @@ class EfficientAT:
         self._model.eval()
 
         # model to preprocess waveform into mel spectrograms
-        settings = {"n_mels": 128, "sr": 32000, "win_length": 800, "hopsize": 320}
+        settings = {"n_mels": 128, "sr": 32000, "win_length": 800, "hopsize": 320,
+                    "fmax": None, "fmax_aug_range": 2000}
         settings.update(kwargs)
+        if settings["fmax"] is None:
+            settings["fmax"] = settings["sr"] // 2 - settings["fmax_aug_range"] // 2
         mel = AugmentMelSTFT(**settings)
         mel.to(self._device)
         mel.eval()
